@@ -1,0 +1,101 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="pluo的博客"><title>git 常用命令汇总 | pluo的博客</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.0"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/8.0.0/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/grids-responsive-min.css"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">git 常用命令汇总</h1><a id="logo" href="/.">pluo的博客</a><p class="description">每天进步一点点</p></div><div id="nav-menu"><a class="current" href="/."><i class="fa fa-home"> 首页</i></a><a href="/archives/"><i class="fa fa-archive"> 归档</i></a><a href="/about/"><i class="fa fa-user"> 关于</i></a></div></div><div class="pure-g" id="layout"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">git 常用命令汇总</h1><div class="post-meta">Aug 24, 2016<span> | </span><span class="category"><a href="/categories/code/">code</a></span></div><div class="post-content"><h3 id="1-git-基本概念："><a href="#1-git-基本概念：" class="headerlink" title="1.git 基本概念："></a>1.git 基本概念：</h3><ul>
+<li>工作区：改动（增删文件和内容）</li>
+<li>暂存区：输入命令：git add 改动的文件名，此次改动就放到了‘暂存区’（新增的文件）</li>
+<li>本地仓库(简称：本地)：输入命令：git commit 此次修改的描述，此次改动就放到了’本地仓库’，每个commit，我叫它为一个‘版本’。</li>
+<li>远程仓库(简称：远程)：输入命令：git push 推送到远程仓库，此次改动就放到了‘远程仓库’ git pull 拉去远程仓库</li>
+<li>commit-id：输出命令：git log，最上面那行commit xxxxxx，后面的字符串就是commit-id</li>
+</ul>
+<h3 id="2-工作区和暂存区的常用命令："><a href="#2-工作区和暂存区的常用命令：" class="headerlink" title="2.工作区和暂存区的常用命令："></a>2.工作区和暂存区的常用命令：</h3><ul>
+<li>展示工作区和暂存区的不同（输出工作区和暂存区的different(不同)。）</li>
+<li>git diff</li>
+<li>还可以展示本地仓库中任意两个commit之间的文件变动：</li>
+<li>git diff <commit-id> <commit-id></commit-id></commit-id></li>
+<li>两个分支的差异：</li>
+<li>git diff <branch a=""> <branch b=""></branch></branch></li>
+<li>放弃工作区的修改</li>
+<li>git checkout <file-name></file-name></li>
+<li>放弃所有修改：</li>
+<li>git checkout .</li>
+<li>强制删除untracked的文件</li>
+<li>git clean <file-name> -f</file-name></li>
+<li>强制删除untracked的目录</li>
+<li>git clean <directory-name> -df</directory-name></li>
+<li>展示所有tracked的文件</li>
+<li>git ls-files -t</li>
+<li>展示所有untracked的文件</li>
+<li>git ls-files –others</li>
+</ul>
+<h3 id="3-有关commit的一些常用命令："><a href="#3-有关commit的一些常用命令：" class="headerlink" title="3.有关commit的一些常用命令："></a>3.有关commit的一些常用命令：</h3><ul>
+<li>查看commit历史</li>
+<li>git log</li>
+<li>重设第一个commit（也就是把所有的改动都重新放回工作区，并清空所有的commit，这样就可以重新提交第一个commit了）</li>
+<li>git update-ref -d HEAD</li>
+<li>回到某个commit的状态，并删除后面的commit （但不丢弃更改）</li>
+<li>git reset <commit-id></commit-id></li>
+<li>回到某个commit的状态（丢弃更改）</li>
+<li>git reset —hard <commit-id></commit-id></li>
+<li>修改上一个commit的描述</li>
+<li>git commit –amend</li>
+<li>展示简化的commit历史</li>
+<li>git log –pretty=oneline –graph –decorate –all</li>
+<li>在commit log中查找相关内容</li>
+<li>git log –all –grep=’<text>’</text></li>
+<li>commit历史中显示Branch1有的，但是Branch2没有commit</li>
+<li>git log Branch1 ^Branch2</li>
+</ul>
+<h3 id="4-关于分支管理的一些常用命令："><a href="#4-关于分支管理的一些常用命令：" class="headerlink" title="4.关于分支管理的一些常用命令："></a>4.关于分支管理的一些常用命令：</h3><ul>
+<li>快速切换分支</li>
+<li>git checkout –</li>
+<li>创建并切换到该分支</li>
+<li>git checkout -b <branch-name></branch-name></li>
+<li>查看本地分支：</li>
+<li>git branch</li>
+<li>查看所有分支</li>
+<li>git branch -a</li>
+<li>重命名本地分支：</li>
+<li>git branch -m <branch-oldname> <branch-newname></branch-newname></branch-oldname></li>
+<li>删除远程分支</li>
+<li>git push origin –delete <remote-branchname></remote-branchname></li>
+<li>git push origin :<remote-branchname></remote-branchname></li>
+<li>关联远程分支（关联之后，git branch -vv就可以展示关联的远程分支名了，同时推送到远程仓库直接：git push，不需要指定远程仓库了。）</li>
+<li>git branch -u origin/mybranch</li>
+<li>展示任意分支某一���件的内容</li>
+<li>git show <branch-name>:<file-name></file-name></branch-name></li>
+<li>新建并切换到新分支上，同时这个分支没有任何commit</li>
+<li>git checkout –orphan <branch-name></branch-name></li>
+</ul>
+<h3 id="5-关于git中标签的一些常用命令："><a href="#5-关于git中标签的一些常用命令：" class="headerlink" title="5.关于git中标签的一些常用命令："></a>5.关于git中标签的一些常用命令：</h3><ul>
+<li>tag就像是一个里程碑一个标志一个点，branch是一个新的征程一条线；</li>
+<li>tag是静态的，branch要向前走；</li>
+<li>稳定版本备份用tag，新功能多人开发用branch。</li>
+<li>查看标签</li>
+<li>git tag</li>
+<li>本地创建标签</li>
+<li>git tag <version-number></version-number></li>
+<li>默认tag是打在最近的一次commit上，如果需要指定commit打tag：</li>
+<li>git tag -a <version-number> -m “v1.0 发布(描述)” <commit-id></commit-id></version-number></li>
+<li>推送标签到远程仓库(首先要保证本地创建好了标签才可以推送标签到远程仓库)</li>
+<li>git push origin <local-version-number></local-version-number></li>
+<li>删除本地标签</li>
+<li>git tag -d <tag-name></tag-name></li>
+<li>删除远程标签（删除远程标签需要先删除本地标签，再执行下面的命令）</li>
+<li>git push origin :refs/tags/<tag-name></tag-name></li>
+</ul>
+<h3 id="6-关于git中stash的一些常用命令："><a href="#6-关于git中stash的一些常用命令：" class="headerlink" title="6.关于git中stash的一些常用命令："></a>6.关于git中stash的一些常用命令：</h3><ul>
+<li>存储当前的修改，但不用提交commit</li>
+<li>git stash</li>
+<li>保存当前状态，包括untracked的文件</li>
+<li>git stash -u</li>
+<li>展示所有stashes</li>
+<li>git stash list</li>
+<li>回到某个stash的状态</li>
+<li>git stash apply &lt;stash@{n}&gt;</li>
+<li>回到最后一个stash的状态，并删除这个stash</li>
+<li>git stash pop</li>
+<li>删除所有的stash</li>
+<li>git stash clear</li>
+<li>从stash中拿出某个文件的修改</li>
+<li>git checkout &lt;stash@{n}&gt; — <file-path></file-path></li>
+</ul>
+<p>转自：<a href="http://www.58maisui.com/2016/08/24/161/" target="_blank" rel="noopener">http://www.58maisui.com/2016/08/24/161/</a></p>
+</div><div class="tags"><a href="/tags/阅读/">阅读</a></div><div class="post-nav"><a class="pre" href="/2016/08/26/life/学习/《怦然心动的人生整理魔法》-简书/">《怦然心动的人生整理魔法》 --- 简书</a><a class="next" href="/2016/08/24/code/安全与测试/软件测试原理与实践/">软件测试原理与实践</a></div></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分类</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/code/">code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/life/">life</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 标签</i></div><div class="tagcloud"><a href="/tags/Linux/" style="font-size: 15px;">Linux</a> <a href="/tags/并发错误/" style="font-size: 15px;">并发错误</a> <a href="/tags/思考/" style="font-size: 15px;">思考</a> <a href="/tags/学习/" style="font-size: 15px;">学习</a> <a href="/tags/生活-思考/" style="font-size: 15px;">生活 思考</a> <a href="/tags/信息安全/" style="font-size: 15px;">信息安全</a> <a href="/tags/编程/" style="font-size: 15px;">编程</a> <a href="/tags/软件调试/" style="font-size: 15px;">软件调试</a> <a href="/tags/软件测试/" style="font-size: 15px;">软件测试</a> <a href="/tags/深入理解计算机系统/" style="font-size: 15px;">深入理解计算机系统</a> <a href="/tags/操作系统/" style="font-size: 15px;">操作系统</a> <a href="/tags/读书/" style="font-size: 15px;">读书</a> <a href="/tags/阅读/" style="font-size: 15px;">阅读</a> <a href="/tags/C-C/" style="font-size: 15px;">C/C++</a> <a href="/tags/整理/" style="font-size: 15px;">整理</a> <a href="/tags/生活/" style="font-size: 15px;">生活</a> <a href="/tags/思维导图/" style="font-size: 15px;">思维导图</a> <a href="/tags/学习金字塔/" style="font-size: 15px;">学习金字塔</a> <a href="/tags/写作/" style="font-size: 15px;">写作</a> <a href="/tags/宣言/" style="font-size: 15px;">宣言</a> <a href="/tags/心智/" style="font-size: 15px;">心智</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最近文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2018/01/11/code/从实模式进入保护模式/">从实模式进入保护模式</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/08/life/读《西藏生死书》有感/">读《西藏生死书》有感</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/05/life/我该怎样活着/">我该怎样活着</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/21/code/安全与测试/防御式编程/">防御式编程</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/10/16/code/安全与测试/调试九法：软硬件错误的排查之道/">调试九法：软硬件错误的排查之道</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/10/16/code/计算机/安装Fedora24后的工作/">安装Fedora24后的工作</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/09/10/life/解决问题的逻辑-拒绝懒惰/">解决问题的逻辑---拒绝懒惰</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/09/09/life/金字塔原理/思考逻辑/">思考逻辑</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/09/09/life/金字塔原理/表达的逻辑/">表达的逻辑</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/09/08/life/学习/学习才能新生/">学习才能新生 --- 读《新生---七年就是一辈子》</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友情链接</i></div><ul></ul><a href="http://grid.hust.edu.cn/" title="CGCL" target="_blank">CGCL</a></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2018 <a href="/." rel="nofollow">pluo的博客.</a></div></div></div><a class="show" id="rocket" href="#top"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.css"><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>

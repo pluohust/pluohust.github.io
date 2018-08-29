@@ -1,0 +1,64 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="pluo的博客"><title>防御式编程 | pluo的博客</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.0"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/8.0.0/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/grids-responsive-min.css"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">防御式编程</h1><a id="logo" href="/.">pluo的博客</a><p class="description">每天进步一点点</p></div><div id="nav-menu"><a class="current" href="/."><i class="fa fa-home"> 首页</i></a><a href="/archives/"><i class="fa fa-archive"> 归档</i></a><a href="/about/"><i class="fa fa-user"> 关于</i></a></div></div><div class="pure-g" id="layout"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">防御式编程</h1><div class="post-meta">May 21, 2017<span> | </span><span class="category"><a href="/categories/code/">code</a></span></div><div class="post-content"><p>防御式编程是一种增强软件健壮性和安全性的重要编程方法与理念。<br>其核心思想是<br><strong>承认程序都会有问题，都需要被修改</strong>。<br>而防御式编程全部重点在于防御那些你未曾预料到的错误。</p>
+<p>以下我们将逐一讨论防御编程的技术。</p>
+<h4 id="防御非法输入数据"><a href="#防御非法输入数据" class="headerlink" title="防御非法输入数据"></a>防御非法输入数据</h4><p>对程序而言，非法输入数据是导致程序出错的一个重要原因。<br>对于非法输入数据，我们通常有两种处理方法：</p>
+<ul>
+<li>检查所有来源于外部的数据的值</li>
+<li>检查子程序所有输入参数的值</li>
+</ul>
+<p>最后我们需要决定如何处理错误的输入数据。<br>返回中立值？装着没看见，丢弃，使用下一个值？等等。<br>这个我们需要具体情况具体分析。</p>
+<h4 id="断言"><a href="#断言" class="headerlink" title="断言"></a>断言</h4><p>断言指一般在开发阶段使用的自检代码，其可能为一个子程序或宏。<br>一个断言通常有两个参数：一个断言为真的布尔表达式，另一个断言为假时的错误提示消息。</p>
+<p>断言主要用于开发和维护阶段。<br>一般我们可以使用断言检查如下情况：</p>
+<ul>
+<li>输入或输出参数的取值合法</li>
+<li>文件和流状态正确</li>
+<li>仅用于输入的变量没有被子程序修改</li>
+<li>指针非空</li>
+<li>子程序输入和输出正确</li>
+</ul>
+<p><strong>错误代码处理预期会发生的状况，而断言处理绝不应该发生的状况。</strong>触发了断言意味着程序的代码有问题，需要修改源码。</p>
+<p>对于断言，我们需要注意一些地方：</p>
+<ul>
+<li>需要执行的代码不要放在断言中</li>
+<li>使用断言来注解并验证前条件和后条件</li>
+<li>对与高健壮性的代码，应该先使用断言再处理错误</li>
+</ul>
+<h4 id="出错处理"><a href="#出错处理" class="headerlink" title="出错处理"></a>出错处理</h4><p>防御式编程就是随时准备面对错误和不要信任任何一个地方。<br><strong>我需要检测重要函数的返回值：即使认定某个函数绝对不会出错，也无论如何要去检查一下。</strong></p>
+<p>程序的健壮性与正确性是两个相悖特性：要保证程序的健壮性，需要程序出错也能运行下去；而对于正确性，当程序出错时需要程序不返回或者终止运行。<br><strong>人身安全攸关的软件往往倾向于正确性，而消费应用软件倾向于健壮性。</strong></p>
+<p>对于程序出错，通常有以下处理技术：</p>
+<ul>
+<li>返回中立值</li>
+<li>换用下一个正确的数据</li>
+<li>返回与前次相同的数据</li>
+<li>换用最接近的合法值</li>
+<li>把警告信息记录到日志文件中</li>
+<li>返回一个错误码</li>
+<li>调用错误处理子程序或对象</li>
+<li>当错误发生时显示出错消息</li>
+<li>用最妥当的方式在局部处理错误</li>
+<li>关闭程序</li>
+</ul>
+<p>对于不同的情况，开发人员需要具体情况具体分析并选者对应的处理方法。</p>
+<h4 id="异常"><a href="#异常" class="headerlink" title="异常"></a>异常</h4><p>异常是面向对象语言使用最普遍的防御手段。<br>其将代码中出错或异常事件传递给异常处理代码进行处理。<br>异常处理的关键在于<strong>在精确的地方返回精确的信息</strong>。<br>只有返回精确的信息才有利于对异常进行正确的处理。</p>
+<p>对于异常处理我们有以下建议：</p>
+<ul>
+<li><strong>只在真正例外的情况下抛出异常，不可滥用，也不可用异常来推卸责任</strong></li>
+<li>避免在构造函数和析构函数中抛出异常，除非你在同一个地方把它们捕获</li>
+<li>在异常消息中加入关于导致异常发生的全部信息</li>
+<li>避免使用空异常的catch语句</li>
+<li>了解所有函数可能抛出的异常</li>
+<li>考虑创建一个集中的异常报告机制</li>
+<li>把项目中对异常的使用标准化</li>
+<li>考虑异常的替补方案</li>
+</ul>
+<h4 id="隔离"><a href="#隔离" class="headerlink" title="隔离"></a>隔离</h4><p>隔离就是将外部“不干净的”数据用隔离代码处理为“干净的”数据。<br>其可让大部分代码不需要对数据再进行错误检查，优化了程序的处理逻辑。<br>因此，编程中需要规定：哪些子程序在安全区域内，哪些在安全区域外，哪些负责清理数据。</p>
+<p>对于隔离，一般建议：隔栏外部使用错误处理技术，隔栏内部使用断言；如果隔栏内子程序检查到错误的数据，则这是程序的错误而不是数据的错误。</p>
+<h4 id="最后操作"><a href="#最后操作" class="headerlink" title="最后操作"></a>最后操作</h4><p>以上我们介绍了防御式编程各种技术，而对于我们软件开发人员来说往往执行一个规则：<strong>在开发阶段我们对软件出错进行无限放大，而对于发行产品我们需要尽量让软件健壮运行</strong>。<br>因此在开发中我们会加入许多进行错误处理代码；而在发行版本中，为了提高软件的健壮性和性能，我们需要去除一些错误处理代码。<br>对于去除哪些错误处理代码，有如下建议：</p>
+<ul>
+<li>保留那些检查重要错误的代码</li>
+<li>去掉检查细微错误的代码</li>
+<li>去掉可以导致程序硬性崩溃的代码</li>
+<li>保留可以让程序稳妥地崩溃的代码</li>
+<li>为技术支持人员记录错误信息</li>
+<li>确认留在代码中的错误消息是友好的</li>
+</ul>
+</div><div class="tags"><a href="/tags/编程/">编程</a></div><div class="post-nav"><a class="pre" href="/2018/01/05/life/我该怎样活着/">我该怎样活着</a><a class="next" href="/2016/10/16/code/安全与测试/调试九法：软硬件错误的排查之道/">调试九法：软硬件错误的排查之道</a></div></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分类</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/code/">code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/life/">life</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 标签</i></div><div class="tagcloud"><a href="/tags/Linux/" style="font-size: 15px;">Linux</a> <a href="/tags/并发错误/" style="font-size: 15px;">并发错误</a> <a href="/tags/思考/" style="font-size: 15px;">思考</a> <a href="/tags/学习/" style="font-size: 15px;">学习</a> <a href="/tags/生活-思考/" style="font-size: 15px;">生活 思考</a> <a href="/tags/信息安全/" style="font-size: 15px;">信息安全</a> <a href="/tags/编程/" style="font-size: 15px;">编程</a> <a href="/tags/软件调试/" style="font-size: 15px;">软件调试</a> <a href="/tags/软件测试/" style="font-size: 15px;">软件测试</a> <a href="/tags/深入理解计算机系统/" style="font-size: 15px;">深入理解计算机系统</a> <a href="/tags/操作系统/" style="font-size: 15px;">操作系统</a> <a href="/tags/读书/" style="font-size: 15px;">读书</a> <a href="/tags/阅读/" style="font-size: 15px;">阅读</a> <a href="/tags/C-C/" style="font-size: 15px;">C/C++</a> <a href="/tags/整理/" style="font-size: 15px;">整理</a> <a href="/tags/生活/" style="font-size: 15px;">生活</a> <a href="/tags/思维导图/" style="font-size: 15px;">思维导图</a> <a href="/tags/学习金字塔/" style="font-size: 15px;">学习金字塔</a> <a href="/tags/写作/" style="font-size: 15px;">写作</a> <a href="/tags/宣言/" style="font-size: 15px;">宣言</a> <a href="/tags/心智/" style="font-size: 15px;">心智</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最近文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2018/01/11/code/从实模式进入保护模式/">从实模式进入保护模式</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/08/life/读《西藏生死书》有感/">读《西藏生死书》有感</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/05/life/我该怎样活着/">我该怎样活着</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/21/code/安全与测试/防御式编程/">防御式编程</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/10/16/code/安全与测试/调试九法：软硬件错误的排查之道/">调试九法：软硬件错误的排查之道</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/10/16/code/计算机/安装Fedora24后的工作/">安装Fedora24后的工作</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/09/10/life/解决问题的逻辑-拒绝懒惰/">解决问题的逻辑---拒绝懒惰</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/09/09/life/金字塔原理/思考逻辑/">思考逻辑</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/09/09/life/金字塔原理/表达的逻辑/">表达的逻辑</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/09/08/life/学习/学习才能新生/">学习才能新生 --- 读《新生---七年就是一辈子》</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友情链接</i></div><ul></ul><a href="http://grid.hust.edu.cn/" title="CGCL" target="_blank">CGCL</a></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2018 <a href="/." rel="nofollow">pluo的博客.</a></div></div></div><a class="show" id="rocket" href="#top"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.css"><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>

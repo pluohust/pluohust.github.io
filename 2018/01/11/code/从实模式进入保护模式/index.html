@@ -1,0 +1,106 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="pluo的博客"><title>从实模式进入保护模式 | pluo的博客</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.0"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/8.0.0/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/grids-responsive-min.css"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">从实模式进入保护模式</h1><a id="logo" href="/.">pluo的博客</a><p class="description">每天进步一点点</p></div><div id="nav-menu"><a class="current" href="/."><i class="fa fa-home"> 首页</i></a><a href="/archives/"><i class="fa fa-archive"> 归档</i></a><a href="/about/"><i class="fa fa-user"> 关于</i></a></div></div><div class="pure-g" id="layout"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">从实模式进入保护模式</h1><div class="post-meta">Jan 11, 2018<span> | </span><span class="category"><a href="/categories/code/">code</a></span></div><div class="post-content"><p>在实模式下，程序可以随意修改1M内存的任何位置的数据，没有任何监管，如同原始社会。<br>进入保护模式后，使用内存需要登记，不仅仅是你从哪里开始使用，还需要登记你使用的范围、用于和目的，读？写？还是执行？<br>为了实现登记，保护模式提出一个新的概念，描述符。每个段都有8个字节的描述，并且所有的描述符都需要集中存储，便于管理。这样就出现了<strong>描述符表</strong>。<br>而最主要的描述符表就是<strong>全局描述符表(Global Descriptor Table, GDT)</strong>。这个全局描述符表是进保护模式前必须先定义好的。</p>
+<p>描述符表可以放在内存任何空闲位置，为了便于跟踪全局描述符，处理器内部有一个48位的寄存器，这就是<strong>全局描述符表寄存器 (GDTR)</strong>。<br>GDTR由32位线性地址和16位的边界组成，32位地址可位于4G内存中任何位置，16位边界描述了全局描述符表的边界。<br>一个描述符有8个字节，因此16位边界可界定(2^16)/8=8192个描述符。<br><strong>要注意一点的是这个16 位边界需要总描述符减一</strong>。当然这是规定，哈哈。</p>
+<p>接下来，我们就要介绍描述符了。<br>每个描述符占8个字节，也就是2个双字。<br>由于兼容，从8086到80286再到80386，这个描述符会有点怪，这也是我们常常不理解的地方。当然，你记住就好，能理解工程师的苦衷那就更好了。<br>一个描述符如下所示。<br><img src="/img/GDTR.png"><br>每个描述符中指定了32位的段起始地址（高32位中的31~24和23~16，低32位中的31~16），以及20位的段边界（高32位中的19~16，低32位中的15~0）。<br>其它位的描述如下。</p>
+<p>G 位是粒度位(Granularity)。G=0时，段界限以字节为单位，段的扩展为1B~1MB；G=1时，段界限以4KB为单位，段的扩展为4KB~4GB。<br>D/B 位区分段或栈是32位还是16位的，D/B=1表示32位，D/B=0表示16位。<br>L 位是64位代码段标志，L=1表示64位，其他则为0即可。<br>AVL 软件可用的位，处理器不使用。</p>
+<p>P 位是段存在位，P=1表示段存在于内存中，P=0表示段不存在与内存。这个位可用于硬盘虚拟内存，当内存不够用时就将很少用的内存放于硬盘中，并这个位进行标志。<br>DPL 位时特权描述位，表示处理器4种特权：0、1、2、3，越小级别越高。<br>S 位表示描述符的类型。S=0表示一个系统段，S=1表示一个代码段或者数据段。<br>TYPE 位指示描述符的子类型。其对于数据段，4位是X、E、W、A；对于代码段，4位是X、C、R、A。</p>
+<table>
+<thead>
+<tr>
+<th>X</th>
+<th>E</th>
+<th>W</th>
+<th>A</th>
+<th>描述符类别</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>x</td>
+<td>数据</td>
+<td>只读</td>
+</tr>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>x</td>
+<td>数据</td>
+<td>读、写</td>
+</tr>
+<tr>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>x</td>
+<td>数据</td>
+<td>只读，向下扩展</td>
+</tr>
+<tr>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>x</td>
+<td>数据</td>
+<td>读、写，向下扩展</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>X</th>
+<th>C</th>
+<th>R</th>
+<th>A</th>
+<th>描述符类别</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>x</td>
+<td>代码</td>
+<td>只执行</td>
+</tr>
+<tr>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>x</td>
+<td>代码</td>
+<td>执行、读</td>
+</tr>
+<tr>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>x</td>
+<td>代码</td>
+<td>只执行，依从的代码段</td>
+</tr>
+<tr>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>x</td>
+<td>代码</td>
+<td>执行、读，依从的代码段</td>
+</tr>
+</tbody>
+</table>
+<p>接下来我们就可以读示例代码了。（本人比较懒，就直接使用别人写好的例子啦，出处《x86汇编–从实模式到保护模式》，这是我见过写的最详细关于编写系统内核的书。）</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br></pre></td><td class="code"><pre><span class="line">       org 0x7c00                         ; 该命令表示程序将被装在到偏移地址为0x7C00的地方</span><br><span class="line">       jmp start</span><br><span class="line">  start:</span><br><span class="line">       mov ax,cs      </span><br><span class="line">       mov ss,ax                          ;设置堆栈段和栈指针 </span><br><span class="line">       mov sp,0x7c00</span><br><span class="line">    </span><br><span class="line">       ;计算GDT所在的逻辑段地址 </span><br><span class="line">       mov ax,[cs:gdt_base]        ;低16位 gdt_base是段内偏移标志，不是一个变量</span><br><span class="line">       mov dx,[cs:gdt_base+0x02]   ;高16位 </span><br><span class="line">       mov bx,16        </span><br><span class="line">       div bx                             ;实模式下段基址x16+偏移地址,其实就是将0x7e00除以16</span><br><span class="line">       mov ds,ax                          ;令DS指向该段以进行操作</span><br><span class="line">       mov bx,dx                          ;段内起始偏移地址 </span><br><span class="line">   </span><br><span class="line">       mov dword [bx+0x00],0x00           ;创建0#描述符，它是空描述符，这是处理器的要求</span><br><span class="line">       mov dword [bx+0x04],0x00  </span><br><span class="line"></span><br><span class="line">                                          ;创建#1描述符，保护模式下的代码段描述符</span><br><span class="line">       mov dword [bx+0x08],0x7c0001ff     ; 7c00为段基址15~0，01ff为段界限符15~0 512字节</span><br><span class="line">       mov dword [bx+0x0c],0x00409800     ;0040 00为段基址31~24 40:0100_0000B表示G=0以字节为段界限粒度，D/B=1表示为32位偏移或操作，L=0表示不为64位，AVL保留位，后面的0000为段界限19~16；98:1001_1000表示P=1段存在，DPL=00特权为0最高级，S=1表示为代码/数据段，TYPE=8表示只执行，00表示段基址23~16</span><br><span class="line"></span><br><span class="line">                                          ;创建#2描述符，保护模式下的数据段描述符（文本模式下的显示缓冲区） </span><br><span class="line">       mov dword [bx+0x10],0x8000ffff     ;64KB 数据段基址 0xb8000显存地址</span><br><span class="line">       mov dword [bx+0x14],0x0040920b     ;92表示TYPE=2读写</span><br><span class="line"></span><br><span class="line">                                          ;创建#3描述符，保护模式下的堆栈段描述符</span><br><span class="line">       mov dword [bx+0x18],0x00007a00</span><br><span class="line">       mov dword [bx+0x1c],0x00409600     ;96表示type=6可读可写</span><br><span class="line"></span><br><span class="line">                                          ;初始化描述符表寄存器GDTR</span><br><span class="line">       mov word [cs: gdt_size],31  ;描述符表的界限（总字节数减一）   </span><br><span class="line">                                           </span><br><span class="line">       lgdt [cs: gdt_size]         ;载入6个字节，先载入gdt_size也就是31，然后是gdt_base 0x7e000 32位基址</span><br><span class="line">    </span><br><span class="line">       in al,0x92                         ;南桥芯片内的端口 </span><br><span class="line">       or al,0000_0010B</span><br><span class="line">       out 0x92,al                        ;打开A20</span><br><span class="line"></span><br><span class="line">       cli                                ;保护模式下中断机制尚未建立，应 </span><br><span class="line">                                          ;禁止中断 </span><br><span class="line">       mov eax,cr0</span><br><span class="line">       or eax,1</span><br><span class="line">       mov cr0,eax                        ;设置PE位，打开了保护模式标志</span><br><span class="line">    </span><br><span class="line">       ;以下进入保护模式... ...</span><br><span class="line">       jmp dword 0x0008:(flush-0x7c00)             ;16位的描述符选择子：32位偏移，为什么是0x0008，因为已经进入了保护模式，段寄存器不再保存基址了，而是保存偏移地址的索引号，8=01_000B，也就是索引号为1的代码段描述符</span><br><span class="line">                                          ;清流水线并串行化处理器，这个比较重要，清初了流水线可更新段寄存器</span><br><span class="line">       [bits 32] </span><br><span class="line"></span><br><span class="line">  flush:</span><br><span class="line">       mov cx,00000000000_10_000B         ;加载数据段选择子(0x10)</span><br><span class="line">       mov ds,cx</span><br><span class="line"></span><br><span class="line">       ;以下在屏幕上显示&quot;Protect mode OK.&quot; </span><br><span class="line">       mov byte [0x00],&apos;P&apos;  </span><br><span class="line">       mov byte [0x02],&apos;r&apos;</span><br><span class="line">       mov byte [0x04],&apos;o&apos;</span><br><span class="line">       mov byte [0x06],&apos;t&apos;</span><br><span class="line">       mov byte [0x08],&apos;e&apos;</span><br><span class="line">       mov byte [0x0a],&apos;c&apos;</span><br><span class="line">       mov byte [0x0c],&apos;t&apos;</span><br><span class="line">       mov byte [0x0e],&apos; &apos;</span><br><span class="line">       mov byte [0x10],&apos;m&apos;</span><br><span class="line">       mov byte [0x12],&apos;o&apos;</span><br><span class="line">       mov byte [0x14],&apos;d&apos;</span><br><span class="line">       mov byte [0x16],&apos;e&apos;</span><br><span class="line">       mov byte [0x18],&apos; &apos;</span><br><span class="line">       mov byte [0x1a],&apos;O&apos;</span><br><span class="line">       mov byte [0x1c],&apos;K&apos;</span><br><span class="line"></span><br><span class="line">                                          ;以下用简单的示例来帮助阐述32位保护模式下的堆栈操作 </span><br><span class="line">       mov cx,00000000000_11_000B         ;加载堆栈段选择子</span><br><span class="line">       mov ss,cx</span><br><span class="line">       mov esp,0x7c00</span><br><span class="line"></span><br><span class="line">       mov ebp,esp                        ;保存堆栈指针 </span><br><span class="line">       push byte &apos;.&apos;                      ;压入立即数（字节）</span><br><span class="line">       </span><br><span class="line">       sub ebp,4</span><br><span class="line">       cmp ebp,esp                        ;判断压入立即数时，ESP是否减4 </span><br><span class="line">       jnz ghalt                          </span><br><span class="line">       pop eax</span><br><span class="line">       mov [0x1e],al                      ;显示句点 </span><br><span class="line">    </span><br><span class="line">ghalt:     </span><br><span class="line">       hlt                                ;已经禁止中断，将不会被唤醒 </span><br><span class="line"></span><br><span class="line">       gdt_size         dw 0</span><br><span class="line">       gdt_base         dd 0x00007e00     ;GDT的物理地址, 这个是自定义的，只要在实模式1M内存内即可，当然最好是在第一个扇区512之后,（7E00H = 7C00H + 512）</span><br><span class="line">                           </span><br><span class="line">       times 510-($-$$) db 0</span><br><span class="line">                        db 0x55,0xaa</span><br></pre></td></tr></table></figure>
+<p>实验方法：</p>
+<ol>
+<li>使用bochs自带的bximage创建一个1.44软盘</li>
+<li>使用nasm -f bin test.asm -o test.bin编译汇编</li>
+<li>使用dd if=test.bin of=test.img bs=1024 count=1440 conv=notrunc写入虚拟映像，再使用虚拟机引导即可</li>
+</ol>
+</div><div class="tags"><a href="/tags/操作系统/">操作系统</a></div><div class="post-nav"><a class="next" href="/2018/01/08/life/读《西藏生死书》有感/">读《西藏生死书》有感</a></div></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分类</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/code/">code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/life/">life</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 标签</i></div><div class="tagcloud"><a href="/tags/Linux/" style="font-size: 15px;">Linux</a> <a href="/tags/并发错误/" style="font-size: 15px;">并发错误</a> <a href="/tags/思考/" style="font-size: 15px;">思考</a> <a href="/tags/学习/" style="font-size: 15px;">学习</a> <a href="/tags/生活-思考/" style="font-size: 15px;">生活 思考</a> <a href="/tags/信息安全/" style="font-size: 15px;">信息安全</a> <a href="/tags/编程/" style="font-size: 15px;">编程</a> <a href="/tags/软件调试/" style="font-size: 15px;">软件调试</a> <a href="/tags/软件测试/" style="font-size: 15px;">软件测试</a> <a href="/tags/深入理解计算机系统/" style="font-size: 15px;">深入理解计算机系统</a> <a href="/tags/操作系统/" style="font-size: 15px;">操作系统</a> <a href="/tags/读书/" style="font-size: 15px;">读书</a> <a href="/tags/阅读/" style="font-size: 15px;">阅读</a> <a href="/tags/C-C/" style="font-size: 15px;">C/C++</a> <a href="/tags/整理/" style="font-size: 15px;">整理</a> <a href="/tags/生活/" style="font-size: 15px;">生活</a> <a href="/tags/思维导图/" style="font-size: 15px;">思维导图</a> <a href="/tags/学习金字塔/" style="font-size: 15px;">学习金字塔</a> <a href="/tags/写作/" style="font-size: 15px;">写作</a> <a href="/tags/宣言/" style="font-size: 15px;">宣言</a> <a href="/tags/心智/" style="font-size: 15px;">心智</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最近文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2018/01/11/code/从实模式进入保护模式/">从实模式进入保护模式</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/08/life/读《西藏生死书》有感/">读《西藏生死书》有感</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/05/life/我该怎样活着/">我该怎样活着</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/21/code/安全与测试/防御式编程/">防御式编程</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/10/16/code/安全与测试/调试九法：软硬件错误的排查之道/">调试九法：软硬件错误的排查之道</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/10/16/code/计算机/安装Fedora24后的工作/">安装Fedora24后的工作</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/09/10/life/解决问题的逻辑-拒绝懒惰/">解决问题的逻辑---拒绝懒惰</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/09/09/life/金字塔原理/思考逻辑/">思考逻辑</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/09/09/life/金字塔原理/表达的逻辑/">表达的逻辑</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/09/08/life/学习/学习才能新生/">学习才能新生 --- 读《新生---七年就是一辈子》</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友情链接</i></div><ul></ul><a href="http://grid.hust.edu.cn/" title="CGCL" target="_blank">CGCL</a></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2018 <a href="/." rel="nofollow">pluo的博客.</a></div></div></div><a class="show" id="rocket" href="#top"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.css"><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>
